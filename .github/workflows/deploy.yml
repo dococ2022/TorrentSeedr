@@ -1,31 +1,20 @@
-name: Deploy
+name: Manually Deploy to Heroku
 
-on: [push, workflow_dispatch]
+on: workflow_dispatch
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
-    
-    if: github.ref == 'refs/heads/main'
     steps:
-    - uses: actions/checkout@v1
-
-    - name: Copy file via scp
-      uses: appleboy/scp-action@master
-      env:
-        HOST: ${{ secrets.HOST }}
-        USERNAME: "root"
-        PORT: 22
-        KEY: ${{ secrets.SSHKEY }}
-      with:
-        source: "."
-        target: "/opt/TorrentSeedr/TorrentSeedr"
-   
-    - name: Executing remote command
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: "root"
-        key: ${{ secrets.SSHKEY }}
-        port: 22
-        script: bash /opt/TorrentSeedr/TorrentSeedr/.github/workflows/deployScript.sh ${{ secrets.CONFIG }}
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
+          heroku_email: ${{secrets.HEROKU_EMAIL}}
+          usedocker: true
+          docker_heroku_process_type: web
+          stack: "container"
+          region: "us"
+        env:
+          HD_CONFIG_FILE_URL: ${{secrets.CONFIG_FILE_URL}}
